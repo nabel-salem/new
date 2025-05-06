@@ -20,8 +20,8 @@
     }
     * { box-sizing: border-box; }
     body { font-family: 'Arial', sans-serif; background: #f0f0f0; margin: 0; padding: 0; }
-    header { background-color: #b30000; color: white; text-align: center; padding: 15px; font-size: 20px; display: none; }
-    nav { display: none; flex-wrap: wrap; justify-content: space-around; background-color: #ffcccc; padding: 10px; }
+    header { background-color: #b30000; color: white; text-align: center; padding: 15px; font-size: 20px; }
+    nav { display: flex; flex-wrap: wrap; justify-content: space-around; background-color: #ffcccc; padding: 10px; }
     nav button { 
       background-color: #b30000; 
       color: white; 
@@ -244,59 +244,9 @@
       background-color: #8c0000;
     }
     
-    /* أنماط تسجيل الدخول */
-    .login-container {
-      max-width: 400px;
-      margin: 50px auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
-    
-    .login-container h2 {
-      color: #b30000;
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    
-    .login-options {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
-    }
-    
-    .login-options button {
-      width: 48%;
-      padding: 10px;
-    }
-    
-    #btn-login {
-      background-color: #b30000;
-    }
-    
-    #btn-register {
-      background-color: #2e7d32;
-    }
-    
-    .user-profile {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-left: auto;
-      color: white;
-    }
-    
-    .user-profile img {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
     /* تحسينات للجوال */
     @media (max-width: 768px) {
-      .login-container, .popup-message {
+      .popup-message {
           width: 90%;
           padding: 15px;
       }
@@ -315,14 +265,53 @@
           font-size: 14px;
       }
     }
+
+    /* تحسينات نافذة الطوارئ */
+    #emergencyPopup {
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    #emergencyRecipientsList {
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 10px 0;
+      border: 1px solid #eee;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    
+    .recipient-item {
+      padding: 8px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    /* نافذة التقييمات */
+    .rating-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 10px;
+    }
+    
+    .rating-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    
+    .rating-comment {
+      background-color: #f9f9f9;
+      padding: 8px;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
   </style>
    <!-- jsPDF and AutoTable plugin -->
    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <!-- CryptoJS for password hashing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 </head>
 <body>
 
@@ -332,66 +321,8 @@
   <p>جاري المعالجة...</p>
 </div>
 
-<!-- قسم تسجيل الدخول -->
-<div id="loginSection" class="section active">
-  <div class="login-container">
-    <h2><i class="fas fa-tint"></i> تسجيل الدخول</h2>
-    
-    <div class="input-icon">
-      <i class="fas fa-phone"></i>
-      <input type="tel" id="loginPhone" class="phone-input" placeholder="رقم الهاتف" inputmode="numeric" dir="ltr">
-    </div>
-    
-    <div class="input-icon">
-      <i class="fas fa-lock"></i>
-      <input type="password" id="loginPassword" placeholder="كلمة المرور">
-    </div>
-    
-    <p id="loginError" style="color: #b30000; text-align: center; display: none;"></p>
-    
-    <button id="btn-login-submit"><i class="fas fa-sign-in-alt"></i> دخول</button>
-    
-    <div class="login-options">
-      <button id="btn-go-to-register"><i class="fas fa-user-plus"></i> تسجيل جديد</button>
-      <button id="btn-reset-password"><i class="fas fa-key"></i> استعادة كلمة المرور</button>
-    </div>
-  </div>
-</div>
-
-<!-- قسم التسجيل -->
-<div id="registerSection" class="section">
-  <div class="login-container">
-    <h2><i class="fas fa-user-plus"></i> تسجيل حساب جديد</h2>
-    
-    <div class="input-icon">
-      <i class="fas fa-user"></i>
-      <input type="text" id="registerName" placeholder="الاسم الكامل">
-    </div>
-    
-    <div class="input-icon">
-      <i class="fas fa-phone"></i>
-      <input type="tel" id="registerPhone" class="phone-input" placeholder="رقم الهاتف" inputmode="numeric" dir="ltr">
-    </div>
-    
-    <div class="input-icon">
-      <i class="fas fa-lock"></i>
-      <input type="password" id="registerPassword" placeholder="كلمة المرور (6 أحرف على الأقل)">
-    </div>
-    
-    <div class="input-icon">
-      <i class="fas fa-lock"></i>
-      <input type="password" id="registerConfirmPassword" placeholder="تأكيد كلمة المرور">
-    </div>
-    
-    <p id="registerError" style="color: #b30000; text-align: center; display: none;"></p>
-    
-    <button id="btn-register-submit"><i class="fas fa-save"></i> تسجيل</button>
-    <button id="btn-go-to-login"><i class="fas fa-sign-in-alt"></i> لديك حساب؟ سجل دخول</button>
-  </div>
-</div>
-
 <!-- قسم الترحيب -->
-<div id="welcome" class="section">
+<div id="welcome" class="section active">
   <div style="max-width: 800px; margin: 0 auto;">
     <h1>
       <i class="fas fa-tint"></i> مرحبًا بكم في تطبيق قطرة أمل
@@ -431,15 +362,9 @@
     <div>
       <i class="fas fa-tint"></i> تطبيق قطرة أمل ... قطرة أمل تنقذ حياة
     </div>
-    <div id="userProfile" class="user-profile" style="display: none;">
-      <span id="userName"></span>
-      <button id="btn-logout" style="background: none; border: none; color: white; cursor: pointer;">
-        <i class="fas fa-sign-out-alt"></i>
-      </button>
-    </div>
   </div>
 </header>
-<p style="font-size: 17px; color: #333; line-height: 1.3; margin: 5px 0; font-weight: 600; text-align: center; display: none;">
+<p style="font-size: 17px; color: #333; line-height: 1.3; margin: 5px 0; font-weight: 600; text-align: center;">
   <i class="fas fa-info-circle"></i> تم تصميم هذا الموقع لتسهيل عملية البحث عن المتبرعين بالدم، وسهولة التواصل مع المتبرعين.
 </p>
 
@@ -447,6 +372,7 @@
   <button id="btn-show-register"><i class="fas fa-user-plus"></i> تسجيل متبرع جديد</button>
   <button id="btn-show-search"><i class="fas fa-search"></i> بحث عن متبرع</button>
   <button id="btn-send-emergency"><i class="fas fa-bell"></i> تنبيه طارئ</button>
+  <button id="btn-show-ratings"><i class="fas fa-star"></i> عرض التقييمات</button>
   <button id="btn-show-suggestions"><i class="fas fa-lightbulb"></i> اقتراحات</button>
 </nav>
 
@@ -679,6 +605,20 @@
   </table>
 </div>
 
+<!-- قسم عرض التقييمات -->
+<div id="ratings" class="section">
+  <h3><i class="fas fa-star"></i> تقييمات المتبرعين</h3>
+  
+  <div class="input-icon">
+    <i class="fas fa-search"></i>
+    <input type="text" id="searchRatingsInput" placeholder="ابحث باسم المتبرع أو رقمه">
+  </div>
+  
+  <div id="ratingsContainer" style="margin-top: 20px;">
+    <!-- سيتم ملء التقييمات هنا -->
+  </div>
+</div>
+
 <!-- النوافذ المنبثقة -->
 <div id="successPopup" class="popup-message">
   <div class="popup-icon success-icon">
@@ -692,27 +632,6 @@
     <i class="fas fa-exclamation-circle"></i>
   </div>
   <p id="errorMessage"></p>
-</div>
-
-<div id="passwordPopup" class="popup-message">
-  <div class="popup-icon">
-    <i class="fas fa-lock"></i>
-  </div>
-  <h3>التحقق من الهوية</h3>
-  <p>للدخول إلى قسم التعديل، يرجى إدخال كلمة المرور</p>
-  
-  <div class="input-icon">
-    <i class="fas fa-key"></i>
-    <input type="password" id="passwordInput" placeholder="كلمة المرور">
-  </div>
-  
-  <p id="passwordError"></p>
-  
-  <button id="btn-check-password"><i class="fas fa-check"></i> دخول</button>
-  <button id="btn-close-password-popup"><i class="fas fa-times"></i> إغلاق</button>
-  <p style="font-size:12px;color:gray;">
-    <i class="fas fa-info-circle"></i> للتعديل أو الحذف، تواصل على الواتس: 00966511479262 نبيل اليافعي
-  </p>
 </div>
 
 <div id="updateDatePopup" class="update-date-popup">
@@ -755,6 +674,7 @@
   <textarea id="emergencyMessage" placeholder="أدخل رسالة الطوارئ هنا..." required></textarea>
   
   <div id="emergencyRecipientsCount" style="margin:10px 0;font-weight:bold;color:#b30000;"></div>
+  <div id="emergencyRecipientsList"></div>
   
   <button id="btn-confirm-emergency"><i class="fas fa-paper-plane"></i> إرسال</button>
   <button id="btn-cancel-emergency"><i class="fas fa-times"></i> إلغاء</button>
@@ -853,10 +773,6 @@
     getFirestore, collection, addDoc, getDocs, query, where, doc, 
     updateDoc, deleteDoc, runTransaction, getDoc, orderBy, limit 
   } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-  import { 
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
-    signOut, updateProfile, setPersistence, browserLocalPersistence 
-  } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDfIBS2gB4lkRZ1_ZerLk451EVfafrfWSM",
@@ -870,18 +786,28 @@
   
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const auth = getAuth(app);
+import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
-  // تفعيل تخزين حالة المصادقة محلياً
-  setPersistence(auth, browserLocalPersistence)
-    .then(() => console.log("تم تفعيل التخزين المحلي لحالة المصادقة"))
-    .catch(error => console.error("خطأ في تفعيل التخزين المحلي:", error));
+const messaging = getMessaging(app);
+
+// جلب FCM Token وتخزينه في قاعدة البيانات
+async function requestAndStoreFCMToken(donorDocId) {
+  try {
+    const fcmToken = await getToken(messaging, { vapidKey: 'YOUR_PUBLIC_VAPID_KEY' });
+    if (fcmToken && donorDocId) {
+      await updateDoc(doc(db, 'donors', donorDocId), { fcmToken });
+      console.log('تم حفظ FCM Token بنجاح');
+    }
+  } catch (err) {
+    console.warn("فشل الحصول على FCM Token", err);
+  }
+}
+
 
   let currentDonorDocId = null;
   let currentDisplayedDonors = [];
   let isProcessing = false;
   const pendingOperations = new Set();
-  let currentUser = null;
   let donorsCache = null;
   let lastFetchTime = null;
   let searchTimeout;
@@ -946,137 +872,6 @@
     }
   }
 
-  // نظام تسجيل الدخول
-  async function loginUser(phone, password) {
-    const loginError = document.getElementById('loginError');
-    loginError.style.display = 'none';
-    
-    if (!phone || !password) {
-      loginError.textContent = 'يرجى إدخال رقم الهاتف وكلمة المرور';
-      loginError.style.display = 'block';
-      return;
-    }
-    
-    try {
-      showLoading('جاري التحقق من البيانات...');
-      
-      // إضافة مهلة زمنية لمنع التجميد
-const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('تجاوز الوقت المحدد للمعالجة')), 10000);
-});
-      const email = `${phone}@qtratamal.com`;
-      const loginPromise = signInWithEmailAndPassword(auth, email, password);
-      
-      // الانتظار لأي من الوظيفتين (التسجيل أو المهلة)
-      const userCredential = await Promise.race([loginPromise, timeoutPromise]);
-      
-      currentUser = userCredential.user;
-      
-      // إخفاء مؤشر التحميل فورًا بعد النجاح
-      hideLoading();
-      
-      // عرض واجهة المستخدم
-      showSection('welcome');
-      updateUserProfile();
-      
-    } catch (error) {
-      console.error(error);
-      hideLoading(); // التأكد من إخفاء المؤشر في حالة الخطأ
-      
-      let errorMessage = 'رقم الهاتف أو كلمة المرور غير صحيحة';
-      if (error.message.includes('تجاوز الوقت المحدد')) {
-          errorMessage = 'استغرقت العملية وقتًا طويلاً، يرجى المحاولة مرة أخرى';
-      } else if (error.code === 'auth/network-request-failed') {
-          errorMessage = 'مشكلة في الاتصال بالإنترنت، يرجى التحقق من الاتصال';
-      }
-      
-      loginError.textContent = errorMessage;
-      loginError.style.display = 'block';
-    }
-  }
-
-  async function registerUser(name, phone, password, confirmPassword) {
-    const registerError = document.getElementById('registerError');
-    registerError.style.display = 'none';
-    
-    if (!name || !phone || !password || !confirmPassword) {
-      registerError.textContent = 'يرجى تعبئة جميع الحقول';
-      registerError.style.display = 'block';
-      return;
-    }
-    
-    if (password.length < 6) {
-      registerError.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-      registerError.style.display = 'block';
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      registerError.textContent = 'كلمة المرور غير متطابقة';
-      registerError.style.display = 'block';
-      return;
-    }
-    
-    const phoneRegex = /^[0-9]{9}$/;
-    if (!phoneRegex.test(phone)) {
-      registerError.textContent = 'رقم الهاتف يجب أن يتكون من 9 أرقام فقط';
-      registerError.style.display = 'block';
-      return;
-    }
-    
-    try {
-      showLoading('جاري إنشاء الحساب...');
-      
-      // التحقق من عدم وجود مستخدم بنفس رقم الهاتف
-      const email = `${phone}@qtratamal.com`;
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // تحديث اسم المستخدم
-      await updateProfile(userCredential.user, {
-        displayName: name
-      });
-      
-      currentUser = userCredential.user;
-      
-      // عرض واجهة المستخدم
-      showSection('welcome');
-      updateUserProfile();
-      showMessage('تم تسجيل حسابك بنجاح');
-      
-    } catch (error) {
-      console.error(error);
-      if (error.code === 'auth/email-already-in-use') {
-        registerError.textContent = 'رقم الهاتف مسجل بالفعل';
-      } else {
-        registerError.textContent = 'حدث خطأ أثناء التسجيل';
-      }
-      registerError.style.display = 'block';
-    } finally {
-      hideLoading();
-    }
-  }
-
-  function logoutUser() {
-    signOut(auth).then(() => {
-      currentUser = null;
-      showSection('loginSection');
-      document.getElementById('userProfile').style.display = 'none';
-      // مسح البيانات المخزنة مؤقتاً
-      donorsCache = null;
-      lastFetchTime = null;
-    }).catch(error => {
-      console.error(error);
-      showMessage('حدث خطأ أثناء تسجيل الخروج', 'error');
-    });
-  }
-
-  function updateUserProfile() {
-    if (currentUser) {
-      document.getElementById('userName').textContent = currentUser.displayName || 'مستخدم';
-      document.getElementById('userProfile').style.display = 'flex';
-    }
-  }
-
   // وظائف التطبيق الأساسية
   async function addDonor() {
     if (isProcessing) return;
@@ -1136,8 +931,7 @@ const timeoutPromise = new Promise((_, reject) => {
         blood: document.getElementById('donorBlood').value,
         notifications: document.getElementById('donorNotification').value === 'enabled',
         availability: document.getElementById('donorAvailability').value,
-        createdAt: new Date().toISOString(),
-        createdBy: currentUser ? currentUser.uid : null
+        createdAt: new Date().toISOString()
       };
       
       if (!d.name || !d.phone || !d.city || !d.area || !d.blood) { 
@@ -1145,7 +939,15 @@ const timeoutPromise = new Promise((_, reject) => {
         return; 
       }
 
-      await addDoc(collection(db, 'donors'), d);
+      
+await addDoc(collection(db, 'donors'), d).then(async (docRef) => {
+  showMessage('تم تسجيل بياناتك بنجاح جزاك الله خير');
+  document.querySelectorAll('#register input').forEach(i => i.value = '');
+  document.getElementById('donorBlood').selectedIndex = 0;
+  donorsCache = null;
+  await requestAndStoreFCMToken(docRef.id);
+});
+
       showMessage('تم تسجيل بياناتك بنجاح جزاك الله خير');
       document.querySelectorAll('#register input').forEach(i => i.value = '');
       document.getElementById('donorBlood').selectedIndex = 0;
@@ -1229,8 +1031,7 @@ const timeoutPromise = new Promise((_, reject) => {
       blood: document.getElementById('editBlood').value,
       notifications: document.getElementById('editNotification').value === 'enabled',
       availability: document.getElementById('editAvailability').value,
-      updatedAt: new Date().toISOString(),
-      updatedBy: currentUser ? currentUser.uid : null
+      updatedAt: new Date().toISOString()
     };
     
     try {
@@ -1478,8 +1279,7 @@ const timeoutPromise = new Promise((_, reject) => {
       
       await updateDoc(doc(db, 'donors', currentDonorDocId), { 
         lastDate: newDate,
-        updatedAt: new Date().toISOString(),
-        updatedBy: currentUser ? currentUser.uid : null
+        updatedAt: new Date().toISOString()
       }); 
       
       showMessage('تم تحديث تاريخ التبرع بنجاح');
@@ -1547,25 +1347,14 @@ const timeoutPromise = new Promise((_, reject) => {
       
       // عرض النتائج مباشرة في النافذة المنبثقة
       const recipientsList = donors.map(d => 
-          `<div style="padding: 5px; border-bottom: 1px solid #eee;">
-              ${d.name} - ${d.phone} - ${d.blood}
+          `<div class="recipient-item">
+              <span>${d.name}</span>
+              <span>${d.phone}</span>
           </div>`
       ).join('');
       
-      document.getElementById('emergencyRecipientsCount').innerHTML = `
-          <div style="margin: 10px 0; font-weight: bold; color: #b30000;">
-              سيتم إرسال التنبيه إلى ${donors.length} متبرع:
-          </div>
-          <div style="max-height: 200px; overflow-y: auto; margin: 10px 0;">
-              ${recipientsList}
-          </div>
-          <div style="margin-top: 10px;">
-              <strong>رسالة التنبيه:</strong>
-              <div style="padding: 10px; background: #f5f5f5; border-radius: 5px; margin-top: 5px;">
-                  ${message}
-              </div>
-          </div>
-      `;
+      document.getElementById('emergencyRecipientsCount').textContent = `سيتم إرسال التنبيه إلى ${donors.length} متبرع:`;
+      document.getElementById('emergencyRecipientsList').innerHTML = recipientsList;
       
       // إضافة زر تأكيد الإرسال النهائي
       const confirmBtn = document.getElementById('btn-confirm-emergency');
@@ -1580,8 +1369,7 @@ const timeoutPromise = new Promise((_, reject) => {
                   area,
                   timestamp: new Date().toISOString(),
                   status: 'sent',
-                  recipients: donors.map(d => d.id),
-                  sender: currentUser ? currentUser.uid : 'anonymous'
+                  recipients: donors.map(d => d.id)
               });
               
               showMessage(`تم إرسال التنبيه إلى ${donors.length} متبرع`);
@@ -1689,8 +1477,7 @@ const timeoutPromise = new Promise((_, reject) => {
           donorId: currentDonorDocId,
           rating,
           comment,
-          timestamp: new Date().toISOString(),
-          ratedBy: currentUser ? currentUser.uid : 'anonymous'
+          timestamp: new Date().toISOString()
         });
       });
       
@@ -1757,8 +1544,7 @@ const timeoutPromise = new Promise((_, reject) => {
         whatsapp: whatsapp || null,
         lastDate: lastDate || null,
         availability,
-        updatedAt: new Date().toISOString(),
-        updatedBy: currentUser ? currentUser.uid : null
+        updatedAt: new Date().toISOString()
       });
       
       showMessage('تم تحديث بياناتك بنجاح');
@@ -1789,6 +1575,59 @@ const timeoutPromise = new Promise((_, reject) => {
     currentDonorDocId = null;
   }
 
+  async function showAllRatings() {
+    try {
+      showLoading('جاري تحميل التقييمات...');
+      
+      const ratingsQuery = query(
+        collection(db, 'ratings'),
+        orderBy('timestamp', 'desc'),
+        limit(50)
+      );
+      
+      const ratingsSnap = await getDocs(ratingsQuery);
+      const ratings = ratingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      const container = document.getElementById('ratingsContainer');
+      container.innerHTML = '';
+      
+      if (ratings.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">لا توجد تقييمات متاحة</p>';
+        return;
+      }
+      
+      // جلب أسماء المتبرعين
+      const donorIds = [...new Set(ratings.map(r => r.donorId))];
+      const donorsSnap = await getDocs(query(collection(db, 'donors'), where('__name__', 'in', donorIds)));
+      const donors = donorsSnap.docs.reduce((acc, doc) => {
+        acc[doc.id] = doc.data().name;
+        return acc;
+      }, {});
+      
+      ratings.forEach(rating => {
+        const ratingElement = document.createElement('div');
+        ratingElement.className = 'rating-item';
+        ratingElement.innerHTML = `
+          <div class="rating-header">
+            <div>
+              <strong>${donors[rating.donorId] || 'مجهول'}</strong>
+              <div>${renderRatingStars(rating.rating)}</div>
+            </div>
+            <small>${formatDate(rating.timestamp)}</small>
+          </div>
+          ${rating.comment ? `<div class="rating-comment">${rating.comment}</div>` : ''}
+        `;
+        container.appendChild(ratingElement);
+      });
+      
+    } catch (e) {
+      console.error(e);
+      showMessage('حدث خطأ أثناء تحميل التقييمات', 'error');
+    } finally {
+      hideLoading();
+    }
+  }
+
   function showSuggestionsPopup() {
     document.getElementById('suggestionsPopup').classList.add('active');
     document.getElementById('suggestionText').value = '';
@@ -1815,11 +1654,10 @@ const timeoutPromise = new Promise((_, reject) => {
       
       await addDoc(collection(db, 'suggestions'), {
         suggestion,
-        name: name || (currentUser ? currentUser.displayName : 'مجهول'),
+        name: name || 'مجهول',
         contact: contact || null,
         timestamp: new Date().toISOString(),
-        status: 'new',
-        submittedBy: currentUser ? currentUser.uid : 'anonymous'
+        status: 'new'
       });
       
       showMessage('شكراً لاقتراحك، سيتم دراسته من قبل الفريق');
@@ -1845,10 +1683,6 @@ const timeoutPromise = new Promise((_, reject) => {
       nav.style.display = 'none';
       header.style.display = 'none';
       infoP.style.display = 'none';
-    } else if (id === 'loginSection' || id === 'registerSection') {
-      nav.style.display = 'none';
-      header.style.display = 'none';
-      infoP.style.display = 'none';
     } else {
       nav.style.display = 'flex';
       header.style.display = 'block';
@@ -1865,6 +1699,9 @@ const timeoutPromise = new Promise((_, reject) => {
         currentDonorDocId = null;
         document.getElementById('editingDonorId').textContent = '';
       }
+      if (id === 'ratings') {
+        showAllRatings();
+      }
     }
   }
 
@@ -1880,40 +1717,13 @@ const timeoutPromise = new Promise((_, reject) => {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // مستمعي أحداث تسجيل الدخول
-    document.getElementById('btn-login-submit').addEventListener('click', () => {
-      const phone = document.getElementById('loginPhone').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      loginUser(phone, password);
-    });
-    
-    document.getElementById('btn-go-to-register').addEventListener('click', () => {
-      showSection('registerSection');
-    });
-    
-    document.getElementById('btn-reset-password').addEventListener('click', () => {
-      showMessage('لإعادة تعيين كلمة المرور، يرجى التواصل مع المسؤول', 'error');
-    });
-    
-    // مستمعي أحداث التسجيل
-    document.getElementById('btn-register-submit').addEventListener('click', () => {
-      const name = document.getElementById('registerName').value.trim();
-      const phone = document.getElementById('registerPhone').value.trim();
-      const password = document.getElementById('registerPassword').value;
-      const confirmPassword = document.getElementById('registerConfirmPassword').value;
-      registerUser(name, phone, password, confirmPassword);
-    });
-    
-    document.getElementById('btn-go-to-login').addEventListener('click', () => {
-      showSection('loginSection');
-    });
-    
     // مستمعي أحداث التطبيق الرئيسية
     document.getElementById('btn-show-register').addEventListener('click', () => showSection('register'));
     document.getElementById('btn-show-search').addEventListener('click', () => showSection('search'));
     document.getElementById('btn-send-emergency').addEventListener('click', () => {
       document.getElementById('emergencyPopup').classList.add('active');
     });
+    document.getElementById('btn-show-ratings').addEventListener('click', () => showSection('ratings'));
     document.getElementById('btn-show-suggestions').addEventListener('click', showSuggestionsPopup);
     document.getElementById('btn-add-donor').addEventListener('click', addDonor);
     document.getElementById('btn-search-donor-edit').addEventListener('click', searchDonorToEdit);
@@ -1932,21 +1742,25 @@ const timeoutPromise = new Promise((_, reject) => {
       document.getElementById('ratingPopup').classList.remove('active');
     });
     document.getElementById('btn-start-app').addEventListener('click', () => {
-      if (currentUser) {
-        showSection('register');
-      } else {
-        showSection('loginSection');
-      }
+      showSection('register');
     });
     document.getElementById('btn-save-self-edit').addEventListener('click', saveDonorSelfEdit);
     document.getElementById('btn-cancel-self-edit').addEventListener('click', closeDonorSelfEditPopup);
     document.getElementById('btn-submit-suggestion').addEventListener('click', submitSuggestion);
     document.getElementById('btn-cancel-suggestion').addEventListener('click', closeSuggestionsPopup);
-    document.getElementById('btn-logout').addEventListener('click', logoutUser);
     
     // تفاعل النجوم في نافذة التقييم
     document.querySelectorAll('#ratingPopup .stars-container i').forEach(star => {
       star.addEventListener('mouseover', function() {
+        const rating = parseInt(this.getAttribute('data-rating'));
+        const stars = this.parentElement.querySelectorAll('i');
+        stars.forEach((s, idx) => {
+          s.className = idx < rating ? 'fas fa-star' : 'far fa-star';
+          s.style.color = 'gold';
+        });
+      });
+      
+      star.addEventListener('click', function() {
         const rating = parseInt(this.getAttribute('data-rating'));
         const stars = this.parentElement.querySelectorAll('i');
         stars.forEach((s, idx) => {
@@ -1959,19 +1773,8 @@ const timeoutPromise = new Promise((_, reject) => {
     // إعداد البحث مع تأخير
     setupSearch();
     
-    // إدارة حالة المستخدم عند تحميل الصفحة
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        showSection('welcome');
-        updateUserProfile();
-      } else {
-        showSection('loginSection');
-      }
-    });
-    
-    // إظهار قسم تسجيل الدخول عند تحميل الصفحة
-    showSection('loginSection');
+    // إظهار قسم الترحيب عند تحميل الصفحة
+    showSection('welcome');
   });
 </script>
 </body>
