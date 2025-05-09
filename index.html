@@ -422,6 +422,8 @@
   <div class="input-icon">
     <i class="fas fa-home"></i>
     <input type="text" id="donorLocation" placeholder="مكان السكن (اختياري)">
+<input type="hidden" id="donorLat">
+<input type="hidden" id="donorLng">
   </div>
   
   <label class="field-label">
@@ -798,10 +800,10 @@
     donors.forEach(donor => {
       // في التطبيق الحقيقي، يجب أن يكون لكل متبرع إحداثيات (lat, lng)
       // هنا نستخدم إحداثيات عشوائية للتوضيح
-      const randomOffset = Math.random() * 0.02 - 0.01;
+      if (!donor.lat || !donor.lng) return;
       const donorLocation = {
-        lat: 15.3694 + randomOffset,
-        lng: 44.1910 + randomOffset
+        lat: donor.lat,
+        lng: donor.lng
       };
       
       const marker = new google.maps.Marker({
@@ -937,6 +939,8 @@
         lastDate: document.getElementById('donorLastDate').value || null,
         whatsapp: donorWhatsapp || null,
         blood: document.getElementById('donorBlood').value,
+        lat: parseFloat(document.getElementById('donorLat').value) || null,
+        lng: parseFloat(document.getElementById('donorLng').value) || null,
         createdAt: new Date().toISOString()
       };
       
@@ -1424,6 +1428,16 @@
         loadFilters();
       }
       if (id === 'register') {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            position => {
+              document.getElementById('donorLat').value = position.coords.latitude;
+              document.getElementById('donorLng').value = position.coords.longitude;
+            },
+            error => console.warn("لم يتم الحصول على الموقع:", error.message)
+          );
+        }
+
         document.querySelectorAll('#register input').forEach(i => i.value = '');
         document.getElementById('donorBlood').selectedIndex = 0;
       }
