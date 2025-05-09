@@ -657,6 +657,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+  import { GeoPoint } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDfIBS2gB4lkRZ1_ZerLk451EVfafrfWSM",
@@ -769,8 +770,39 @@
     }
   }
 
+  // الحصول على إحداثيات المدينة
+  async function getCityCoordinates(city, area = '') {
+    const citiesCoordinates = {
+      'صنعاء': { lat: 15.3694, lng: 44.1910 },
+      'عدن': { lat: 12.7855, lng: 45.0187 },
+      'تعز': { lat: 13.5789, lng: 44.0219 },
+      'الحديدة': { lat: 14.8033, lng: 42.9545 },
+      'حضرموت': { lat: 15.8361, lng: 49.0253 }
+    };
+
+    if (citiesCoordinates[city]) {
+      return citiesCoordinates[city];
+    }
+
+    try {
+      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city + ' ' + area)}&key=AIzaSyDfIBS2gB4lkRZ1_ZerLk451EVfafrfWSM`);
+      const data = await response.json();
+      
+      if (data.results[0]) {
+        return {
+          lat: data.results[0].geometry.location.lat,
+          lng: data.results[0].geometry.location.lng
+        };
+      }
+    } catch (e) {
+      console.error('Error getting coordinates:', e);
+    }
+
+    return { lat: 15.3694, lng: 44.1910 }; // Default to Sana'a
+  }
+
   // دالة لعرض المتبرعين على الخريطة
-  function displayDonorsOnMap(donors) {
+  async function displayDonorsOnMap(donors) {
     if (!mapInitialized || !map) {
       initMap();
       return;
@@ -789,20 +821,25 @@
           url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
         }
       });
-      
-      // تحريك الخريطة لمركزة على موقع المستخدم
-      map.setCenter(userPosition);
     }
     
+    const bounds = new google.maps.LatLngBounds();
+    
     // إضافة علامات للمتبرعين
-    donors.forEach(donor => {
-      // في التطبيق الحقيقي، يجب أن يكون لكل متبرع إحداثيات (lat, lng)
-      // هنا نستخدم إحداثيات عشوائية للتوضيح
-      const randomOffset = Math.random() * 0.02 - 0.01;
-      const donorLocation = {
-        lat: 15.3694 + randomOffset,
-        lng: 44.1910 + randomOffset
-      };
+    for (const donor of donors) {
+      let donorLocation;
+      
+      if (donor.coordinates) {
+        donorLocation = {
+          lat: donor.coordinates.latitude,
+          lng: donor.coordinates.longitude
+        };
+      } else {
+        // للمتبرعين القدامى الذين لا يوجد لديهم إحداثيات
+        donorLocation = await getCityCoordinates(donor.city, donor.area);
+      }
+      
+      bounds.extend(donorLocation);
       
       const marker = new google.maps.Marker({
         position: donorLocation,
@@ -835,7 +872,14 @@
       marker.addListener('click', () => {
         infoWindow.open(map, marker);
       });
-    });
+    }
+    
+    if (donors.length > 0) {
+      if (userPosition) {
+        bounds.extend(userPosition);
+      }
+      map.fitBounds(bounds);
+    }
   }
 
   // دالة لمسح العلامات من الخريطة
@@ -928,15 +972,22 @@
         return;
       }
       
+      const city = document.getElementById('donorCity').value.trim();
+      const area = document.getElementById('donorArea').value.trim();
+      
+      // الحصول على إحداثيات المدينة
+      const coordinates = await getCityCoordinates(city, area);
+      
       const d = {
         name: donorName,
         phone: donorPhone,
-        city: document.getElementById('donorCity').value.trim(),
-        area: document.getElementById('donorArea').value.trim(),
+        city: city,
+        area: area,
         location: document.getElementById('donorLocation').value.trim(),
         lastDate: document.getElementById('donorLastDate').value || null,
         whatsapp: donorWhatsapp || null,
         blood: document.getElementById('donorBlood').value,
+        coordinates: new GeoPoint(coordinates.lat, coordinates.lng),
         createdAt: new Date().toISOString()
       };
       
@@ -1014,22 +1065,29 @@
     if (isProcessing || !currentDonorDocId) return;
     
     const btn = document.getElementById('btn-save-edit');
-    const updated = {
-      name: document.getElementById('editNewName').value.trim(),
-      phone: document.getElementById('editPhone').value.trim(),
-      city: document.getElementById('editCity').value.trim(),
-      area: document.getElementById('editArea').value.trim(),
-      location: document.getElementById('editLocation').value.trim(),
-      lastDate: document.getElementById('editLastDate').value || null,
-      whatsapp: document.getElementById('editWhatsapp').value.trim() || null,
-      blood: document.getElementById('editBlood').value,
-      updatedAt: new Date().toISOString()
-    };
+    const city = document.getElementById('editCity').value.trim();
+    const area = document.getElementById('editArea').value.trim();
     
     try {
       isProcessing = true;
       btn.disabled = true;
       showLoading();
+      
+      // الحصول على إحداثيات المدينة المحدثة
+      const coordinates = await getCityCoordinates(city, area);
+      
+      const updated = {
+        name: document.getElementById('editNewName').value.trim(),
+        phone: document.getElementById('editPhone').value.trim(),
+        city: city,
+        area: area,
+        location: document.getElementById('editLocation').value.trim(),
+        lastDate: document.getElementById('editLastDate').value || null,
+        whatsapp: document.getElementById('editWhatsapp').value.trim() || null,
+        blood: document.getElementById('editBlood').value,
+        coordinates: new GeoPoint(coordinates.lat, coordinates.lng),
+        updatedAt: new Date().toISOString()
+      };
       
       if (updated.whatsapp) {
         const whatsappRegex = /^967\d{9}$/;
@@ -1291,18 +1349,33 @@
       const snap = await getDocs(collection(db, 'donors'));
       const allDonors = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       
-      // هنا يمكنك إضافة منطق لتصفية المتبرعين حسب القرب
-      // هذا مثال مبسط يعرض جميع المتبرعين مع إضافة معلومات القرب
+      // حساب المسافة لكل متبرع
       const donorsWithDistance = allDonors.map(donor => {
-        // في التطبيق الحقيقي، يمكنك حساب المسافة باستخدام إحداثيات المتبرع
+        let distance = '—';
+        
+        if (donor.coordinates) {
+          const donorPos = {
+            lat: donor.coordinates.latitude,
+            lng: donor.coordinates.longitude
+          };
+          distance = calculateDistance(position, donorPos);
+        }
+        
         return {
           ...donor,
-          distance: "قريب منك" // سيتم استبدالها بحساب المسافة الفعلي
+          distance: distance
         };
       });
       
-      renderSearchTable(donorsWithDistance);
-      showMessage('تم العثور على متبرعين قريبين من موقعك');
+      // تصفية المتبرعين القريبين (على سبيل المثال ضمن 50 كم)
+      const nearbyDonors = donorsWithDistance.filter(donor => {
+        return donor.distance !== '—' && parseFloat(donor.distance) < 50;
+      });
+      
+      renderSearchTable(nearbyDonors.length > 0 ? nearbyDonors : donorsWithDistance);
+      showMessage(nearbyDonors.length > 0 
+        ? `تم العثور على ${nearbyDonors.length} متبرع قريب منك` 
+        : 'لا يوجد متبرعون قريبون، عرض جميع المتبرعين');
       
     } catch (error) {
       console.error('Error getting nearby donors:', error);
@@ -1310,6 +1383,20 @@
     } finally {
       hideLoading();
     }
+  }
+
+  // دالة لحساب المسافة بين موقعين
+  function calculateDistance(pos1, pos2) {
+    const R = 6371; // نصف قطر الأرض بالكيلومتر
+    const dLat = (pos2.lat - pos1.lat) * Math.PI / 180;
+    const dLon = (pos2.lng - pos1.lng) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(pos1.lat * Math.PI / 180) * 
+      Math.cos(pos2.lat * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return (R * c).toFixed(1) + ' كم';
   }
 
   function enableEditDate(id) { 
@@ -1333,8 +1420,6 @@
       isProcessing = true;
       btn.disabled = true;
       showLoading();
-      
-      console.log('Updating donor:', currentDonorDocId, 'with date:', newDate);
       
       await updateDoc(doc(db, 'donors', currentDonorDocId), { 
         lastDate: newDate,
@@ -1457,7 +1542,7 @@
       mapDiv.style.display = mapDiv.style.display === 'none' ? 'block' : 'none';
       
       if (mapDiv.style.display === 'block') {
-        initMap(); // تهيئة الخريطة عند العرض لأول مرة
+        initMap();
         if (currentDisplayedDonors.length > 0) {
           displayDonorsOnMap(currentDisplayedDonors);
         }
