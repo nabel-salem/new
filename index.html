@@ -316,7 +316,7 @@
   <!-- CryptoJS for password hashing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <!-- Google Maps API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDfIBS2gB4lkRZ1_ZerLk451EVfafrfWSM&libraries=places&callback=initMap" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDfIBS2gB4lkRZ1_ZerLk451EVfafrfWSM&libraries=places&loading=async"></script>
 </head>
 <body>
 
@@ -677,6 +677,7 @@
   let markers = [];
   let userPosition = null;
   let locationPermissionAsked = false;
+  let mapInitialized = false;
 
   // كلمة المرور المشفرة
   const PASSWORD_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
@@ -733,14 +734,21 @@
 
   // دالة لتهيئة الخريطة
   function initMap() {
-    map = new google.maps.Map(document.getElementById('donorsMap'), {
-      center: {lat: 15.3694, lng: 44.1910}, // إحداثيات صنعاء
-      zoom: 12
-    });
+    const mapDiv = document.getElementById('donorsMap');
+    if (!mapDiv || mapDiv.style.display === 'none') return;
     
-    // طلب إذن الموقع عند تحميل الصفحة
-    if (!locationPermissionAsked) {
-      requestLocationPermission();
+    if (!mapInitialized && typeof google !== 'undefined') {
+      map = new google.maps.Map(mapDiv, {
+        center: {lat: 15.3694, lng: 44.1910}, // إحداثيات صنعاء
+        zoom: 12
+      });
+      
+      mapInitialized = true;
+      
+      // طلب إذن الموقع عند تحميل الصفحة
+      if (!locationPermissionAsked) {
+        requestLocationPermission();
+      }
     }
   }
 
@@ -763,7 +771,10 @@
 
   // دالة لعرض المتبرعين على الخريطة
   function displayDonorsOnMap(donors) {
-    if (!map) return;
+    if (!mapInitialized || !map) {
+      initMap();
+      return;
+    }
     
     // مسح العلامات القديمة أولاً
     clearMapMarkers();
@@ -1445,8 +1456,11 @@
       const mapDiv = document.getElementById('donorsMap');
       mapDiv.style.display = mapDiv.style.display === 'none' ? 'block' : 'none';
       
-      if (mapDiv.style.display === 'block' && currentDisplayedDonors.length > 0) {
-        displayDonorsOnMap(currentDisplayedDonors);
+      if (mapDiv.style.display === 'block') {
+        initMap(); // تهيئة الخريطة عند العرض لأول مرة
+        if (currentDisplayedDonors.length > 0) {
+          displayDonorsOnMap(currentDisplayedDonors);
+        }
       }
     });
     document.getElementById('btn-start-app').addEventListener('click', () => showSection('register'));
@@ -1464,6 +1478,14 @@
     
     // إظهار قسم الترحيب عند تحميل الصفحة
     showSection('welcome');
+    
+    // التحقق من تحميل Google Maps API بشكل دوري
+    let mapCheckInterval = setInterval(() => {
+      if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+        clearInterval(mapCheckInterval);
+        initMap();
+      }
+    }, 100);
   });
 </script>
 
