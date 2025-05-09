@@ -1533,10 +1533,11 @@
     });
     
     // أحداث نافذة طلب إذن الموقع
-    document.getElementById('allowLocation').addEventListener('click', () => {
-      document.getElementById('locationPermission').style.display = 'none';
-      searchNearbyDonors();
-    });
+document.getElementById('allowLocation').addEventListener('click', () => {
+  document.getElementById('locationPermission').style.display = 'none';
+  // إزالة استدعاء searchNearbyDonors() من هنا
+  showMessage('تم منح إذن الوصول إلى الموقع. يمكنك الآن استخدام زر "البحث عن متبرعين قريبين"', 'success');
+});
     
     document.getElementById('denyLocation').addEventListener('click', () => {
       document.getElementById('locationPermission').style.display = 'none';
