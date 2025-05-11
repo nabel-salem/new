@@ -159,6 +159,9 @@
     #welcome li {
       margin-bottom: 10px;
       padding-right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     #welcome .quote-box {
       margin: 30px 0;
@@ -291,11 +294,163 @@
       background-color: #b30000;
       color: white;
     }
+    
+    /* أنماط نافذة الإشعارات */
+    #notificationsPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      z-index: 2000;
+      text-align: center;
+      max-width: 90%;
+      width: 350px;
+    }
+    
+    #notificationsPopup h3 {
+      color: #b30000;
+      margin-top: 0;
+    }
+    
+    #notificationsList {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 15px 0;
+      text-align: right;
+    }
+    
+    .notification-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: right;
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-time {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    /* أنماط صفحة الترحيب للهواتف */
+    @media (max-width: 600px) {
+      #welcome h1 {
+        font-size: 22px;
+      }
+      
+      #welcome h2 {
+        font-size: 20px;
+      }
+      
+      #welcome h3 {
+        font-size: 18px;
+      }
+      
+      #welcome p {
+        font-size: 16px;
+      }
+      
+      #welcome ul {
+        font-size: 15px;
+      }
+      
+      #welcome li {
+        font-size: 14px;
+      }
+      
+      #btn-start-app {
+        font-size: 16px;
+        padding: 10px 20px;
+      }
+    }
+
+    /* أنماط نافذة الطوارئ */
+    #emergencyPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      z-index: 2000;
+      text-align: right;
+      max-width: 90%;
+      width: 350px;
+    }
+    
+    #emergencyPopup h3 {
+      color: #b30000;
+      margin-top: 0;
+      text-align: center;
+    }
+    
+    #emergencyPopup label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+      color: #b30000;
+    }
+    
+    #emergencyPopup textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+    
+    #emergencyPopup .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    
+    #emergencyPopup button {
+      padding: 8px 15px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+    
+    #btn-send-emergency {
+      background-color: #b30000;
+      color: white;
+    }
+    
+    #btn-cancel-emergency {
+      background-color: #666;
+      color: white;
+    }
+    
+    /* زر الطوارئ في شريط التنقل */
+    #btn-show-emergency {
+      background-color: #d32f2f;
+      color: white;
+    }
+    
+    #btn-show-emergency:hover {
+      background-color: #b71c1c;
+    }
   </style>
   <!-- CryptoJS for password hashing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <!-- Google Maps API -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDfIBS2gB4lkRZ1_ZerLk451EVfafrfWSM&libraries=places&loading=async"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js"></script>
 </head>
 <body>
 
@@ -308,10 +463,48 @@
 <!-- نافذة طلب إذن الموقع -->
 <div id="locationPermission">
   <h3><i class="fas fa-map-marker-alt"></i> إذن الوصول إلى الموقع</h3>
-  <p>لتتمكن من رؤية المتبرعين القريبين منك، نحتاج إلى إذنك للوصول إلى موقعك الحالي.</p>
+  <p>لتتمكن من رؤية المتبرعين القريبين منك، نحتاج إلى إذنك للوصول إلى الموقع الحالي.</p>
+  <p style="color: #2e7d32; font-weight: bold;">بموافقتك، يمكنك مساعدة المحتاجين للدم بسرعة أكبر!</p>
   <div class="permission-buttons">
     <button id="allowLocation"><i class="fas fa-check"></i> الموافقة</button>
     <button id="denyLocation"><i class="fas fa-times"></i> رفض</button>
+  </div>
+</div>
+
+<!-- نافذة الإشعارات -->
+<div id="notificationsPopup" class="popup-message">
+  <div class="popup-icon">
+    <i class="fas fa-bell"></i>
+  </div>
+  <h3>الإشعارات</h3>
+  <div id="notificationsList">
+    <div class="notification-item">
+      <p>مرحباً بك في تطبيق قطرة أمل! شكراً لانضمامك لمجتمع المتبرعين بالدم.</p>
+      <div class="notification-time">اليوم</div>
+    </div>
+  </div>
+  <button id="btn-close-notifications"><i class="fas fa-times"></i> إغلاق</button>
+</div>
+
+<!-- نافذة طلب الطوارئ -->
+<div id="emergencyPopup">
+  <h3><i class="fas fa-exclamation-triangle"></i> طلب تبرع طارئ</h3>
+  
+  <label for="emergencyBloodType"><i class="fas fa-tint"></i> فصيلة الدم المطلوبة</label>
+  <select id="emergencyBloodType">
+    <option value="">اختر فصيلة الدم</option>
+    <option>+A</option><option>-A</option>
+    <option>+B</option><option>-B</option>
+    <option>+AB</option><option>-AB</option>
+    <option>+O</option><option>-O</option>
+  </select>
+  
+  <label for="emergencyMessage"><i class="fas fa-comment"></i> رسالة الطلب (اختياري)</label>
+  <textarea id="emergencyMessage" rows="4" placeholder="مثال: حالة طارئة في مستشفى السلام، يرجى التبرع بالدم..."></textarea>
+  
+  <div class="buttons">
+    <button id="btn-cancel-emergency"><i class="fas fa-times"></i> إلغاء</button>
+    <button id="btn-send-emergency"><i class="fas fa-paper-plane"></i> إرسال</button>
   </div>
 </div>
 
@@ -329,14 +522,26 @@
         نسعى من خلال هذا التطبيق إلى إنقاذ حياة المرضى والمصابين الذين يحتاجون إلى نقل الدم بشكل عاجل.
       </p>
       
-      <h3>كيف يعمل التطبيق؟</h3>
+      <h3>مميزات التطبيق</h3>
       <ul>
-        <li><i class="fas fa-check-circle" style="color: #2e7d32;"></i> تسجيل المتبرعين الراغبين في المساعدة</li>
-        <li><i class="fas fa-check-circle" style="color: #2e7d32;"></i> البحث عن المتبرعين حسب فصيلة الدم والموقع</li>
-        <li><i class="fas fa-check-circle" style="color: #2e7d32;"></i> التواصل المباشر مع المتبرعين عبر الهاتف أو الواتساب</li>
-        <li><i class="fas fa-check-circle" style="color: #2e7d32;"></i> تحديث بيانات المتبرعين بسهولة</li>
+        <li><i class="fas fa-user-plus" style="color: #b30000;"></i> تسجيل متبرعين جدد بسهولة</li>
+        <li><i class="fas fa-search" style="color: #b30000;"></i> البحث عن متبرعين حسب فصيلة الدم والموقع</li>
+        <li><i class="fas fa-map-marker-alt" style="color: #b30000;"></i> تحديد المتبرعين القريبين من موقعك</li>
+        <li><i class="fas fa-phone" style="color: #b30000;"></i> التواصل المباشر مع المتبرعين عبر الهاتف أو الواتساب</li>
+        <li><i class="fas fa-edit" style="color: #b30000;"></i> تحديث بيانات المتبرعين بسهولة</li>
+        <li><i class="fas fa-bell" style="color: #b30000;"></i> إرسال إشعارات طارئة للمتبرعين عند الحاجة للدم</li>
       </ul>
       
+      <div class="quote-box">
+        <i class="fas fa-quote-left"></i>
+        <p>قطرة دم واحدة يمكنها إنقاذ حياة... كن بطلاً وساهم في إنقاذ الأرواح</p>
+      </div>
+      
+      <h3>كيف يعمل البحث عن متبرعين قريبين؟</h3>
+      <p>
+        عند الموافقة على مشاركة الموقع، يمكنك البحث عن المتبرعين الأقرب إليك جغرافياً. 
+        هذا يساعد في توفير الوقت والجهد عند الحاجة الضرورية للدم، خاصة في الحالات الطارئة.
+      </p>
     </div>
     
     <button id="btn-start-app">
@@ -363,6 +568,8 @@
   <button id="btn-show-register"><i class="fas fa-user-plus"></i> تسجيل متبرع جديد</button>
   <button id="btn-show-password-popup"><i class="fas fa-edit"></i> تعديل البيانات</button>
   <button id="btn-show-search"><i class="fas fa-search"></i> بحث عن متبرع</button>
+  <button id="btn-show-emergency"><i class="fas fa-exclamation-triangle"></i> طلب طارئ</button>
+  <button id="btn-show-notifications"><i class="fas fa-bell"></i> الإشعارات</button>
 </nav>
 
 <div id="register" class="section">
@@ -381,7 +588,7 @@
     <input type="tel" id="donorPhone" class="phone-input" placeholder="رقم الهاتف" inputmode="numeric" dir="ltr">
   </div>
   <label class="field-label">
-    <i class="fas fa-tint"></i> رقم الواتساب ليس إجباري ولاكن في حال سجلت رقم الواتساب يجب أن يبدأ 967 
+    <i class="fab fa-whatsapp"></i> رقم الواتساب ليس إجباري ولاكن في حال سجلت رقم الواتساب يجب أن يبدأ 967 
   </label>
   <div class="input-icon">
     <i class="fab fa-whatsapp"></i>
@@ -404,11 +611,11 @@
   </div>
   
   <label class="field-label">
-    <i class="fas fa-map-marked-alt"></i> تحديد الموقع على الخريطة
+    <i class="fas fa-map-marked-alt"></i> تحديد الموقع بالضغط على استخدام الموقع لتفعيل المتبرعين القريبين.
   </label>
   <div id="locationPickerMap" style="height: 200px; margin: 10px 0; border: 2px solid #b30000; border-radius: 8px; display: none;"></div>
   <button id="btn-get-current-location" type="button" style="background-color: #2e7d32; color: white; border: none; border-radius: 8px; padding: 8px 15px; margin-bottom: 10px; cursor: pointer; width: 100%;">
-    <i class="fas fa-location-arrow"></i> استخدام موقعي الحالي
+    <i class="fas fa-location-arrow"></i> استخدام الموقع لتفعيل المتبرعين القريبين
   </button>
   <input type="hidden" id="donorLatitude">
   <input type="hidden" id="donorLongitude">
@@ -612,7 +819,7 @@
   <div class="popup-icon">
     <i class="fas fa-calendar-check"></i>
   </div>
-  <h3>تحديث تاريخ التبرع</h3>
+  <h3>تحديث بيانات المتبرع</h3>
   
   <div class="input-icon">
     <i class="fas fa-calendar-day"></i>
@@ -627,6 +834,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
   import { GeoPoint } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDfIBS2gB4lkRZ1_ZerLk451EVfafrfWSM",
@@ -638,6 +846,7 @@
   };
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const messaging = getMessaging(app);
 
   let currentDonorDocId = null;
   let currentDisplayedDonors = [];
@@ -1231,7 +1440,7 @@
         <td data-label="المسافة">${d.distance ? `<i class="fas fa-location-arrow"></i> ${d.distance}` : '—'}</td>
         <td data-label="تعديل">
           <button data-donor-id="${d.id}" class="btn-update-date">
-            <i class="fas fa-edit"></i> تحديث آخر تبرع
+            <i class="fas fa-edit"></i> تحديث تاريخ التبرع
           </button>
         </td>
       `;
@@ -1368,19 +1577,19 @@
         updatedAt: new Date().toISOString()
       }); 
       
-      showMessage('تم تحديث تاريخ التبرع بنجاح');
+      showMessage('تم تحديث بيانات المتبرع بنجاح');
       
-      // تحديث الجدول مباشرة دون الحاجة لإعادة جلب البيانات
+      // تحديث الجدول مباشرة
       const donorIndex = currentDisplayedDonors.findIndex(d => d.id === currentDonorDocId);
       if (donorIndex !== -1) {
-          currentDisplayedDonors[donorIndex].lastDate = newDate;
-          renderSearchTable(currentDisplayedDonors);
+        currentDisplayedDonors[donorIndex].lastDate = newDate;
+        renderSearchTable(currentDisplayedDonors);
       }
       
       closeUpdateDatePopup(); 
       currentDonorDocId = null; 
     } catch(e) { 
-      console.error('Error updating donation date:', e); 
+      console.error('Error updating donor data:', e); 
       showMessage('حدث خطأ أثناء التحديث', 'error'); 
     } finally {
       isProcessing = false;
@@ -1403,6 +1612,22 @@
   function closePasswordPopup() { 
     document.getElementById('passwordPopup').classList.remove('active'); 
     document.getElementById('passwordError').style.display = 'none';
+  }
+
+  function showEmergencyPopup() {
+    document.getElementById('emergencyPopup').style.display = 'block';
+  }
+
+  function closeEmergencyPopup() {
+    document.getElementById('emergencyPopup').style.display = 'none';
+  }
+
+  function showNotifications() {
+    document.getElementById('notificationsPopup').classList.add('active');
+  }
+
+  function closeNotifications() {
+    document.getElementById('notificationsPopup').classList.remove('active');
   }
 
   async function checkPassword() { 
@@ -1462,10 +1687,154 @@
     }
   }
 
+  // دالة للتحقق من المتبرع الحالي وتحديث موقعه
+  async function checkAndUpdateCurrentDonor() {
+    try {
+      // الحصول على الموقع الحالي
+      const position = await getCurrentLocation();
+      
+      // البحث عن المتبرع الحالي باستخدام رقم الهاتف
+      const phone = prompt('الرجاء إدخال رقم هاتفك المسجل في التطبيق للتحقق من هويتك:');
+      if (!phone) return;
+      
+      const phoneSnap = await getDocs(query(collection(db, 'donors'), where('phone', '==', phone)));
+      
+      if (phoneSnap.empty) {
+        showMessage('رقم الهاتف غير مسجل في التطبيق', 'error');
+        return;
+      }
+      
+      const donorDoc = phoneSnap.docs[0];
+      const donorData = donorDoc.data();
+      
+      // تحديث موقع المتبرع
+      await updateDoc(doc(db, 'donors', donorDoc.id), {
+        coordinates: new GeoPoint(position.lat, position.lng),
+        updatedAt: new Date().toISOString()
+      });
+      
+      showMessage('تم تحديث موقعك بنجاح. شكراً لك على مساهمتك في إنقاذ الأرواح!');
+      
+    } catch (error) {
+      console.error('Error updating donor location:', error);
+      showMessage('حدث خطأ أثناء تحديث الموقع', 'error');
+    }
+  }
+
+  // دالة لإرسال إشعارات الطوارئ
+  async function sendEmergencyRequest() {
+    const bloodType = document.getElementById('emergencyBloodType').value;
+    const message = document.getElementById('emergencyMessage').value.trim();
+    
+    if (!bloodType) {
+      showMessage('الرجاء تحديد فصيلة الدم المطلوبة', 'error');
+      return;
+    }
+    
+    try {
+      showLoading();
+      
+      // في تطبيق حقيقي، هنا سيكون اتصال بخادم لإرسال الإشعارات
+      // هذا مثال فقط لأغراض العرض
+      const response = await fetch('https://your-server.com/send-notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bloodType,
+          message
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        showMessage('تم إرسال طلب التبرع الطارئ بنجاح');
+        closeEmergencyPopup();
+        
+        // إضافة الإشعار إلى قائمة الإشعارات المحلية
+        const notificationItem = document.createElement('div');
+        notificationItem.className = 'notification-item';
+        notificationItem.innerHTML = `
+          <p>تم إرسال طلب تبرع طارئ لفصيلة ${bloodType}</p>
+          ${message ? `<p>${message}</p>` : ''}
+          <div class="notification-time">الآن</div>
+        `;
+        
+        document.getElementById('notificationsList').prepend(notificationItem);
+      } else {
+        showMessage('حدث خطأ أثناء إرسال الطلب', 'error');
+      }
+    } catch (error) {
+      console.error('Error sending emergency request:', error);
+      showMessage('حدث خطأ أثناء إرسال الطلب', 'error');
+    } finally {
+      hideLoading();
+    }
+  }
+
+  // دالة لتهيئة إشعارات Firebase
+  async function initializeFirebaseMessaging() {
+    try {
+      // طلب إذن الإشعارات
+      const permission = await Notification.requestPermission();
+      
+      if (permission === 'granted') {
+        console.log('Notification permission granted.');
+        
+        // الحصول على رمز الجهاز
+        const token = await getToken(messaging, {
+          vapidKey: 'GcVvUHLKXltIrqHqAHVoaSFeaAIlSOI_gIyto0w4s0w'
+        });
+        
+        console.log('FCM Token:', token);
+        
+        // يمكنك هنا إرسال الرمز إلى خادمك لتخزينه
+        // await saveTokenToDatabase(token);
+        
+        // الاستماع للإشعارات الواردة
+        onMessage(messaging, (payload) => {
+          console.log('Message received:', payload);
+          
+          // عرض الإشعار
+          const notificationTitle = payload.notification?.title || 'إشعار جديد';
+          const notificationOptions = {
+            body: payload.notification?.body || 'لديك إشعار جديد من تطبيق قطرة أمل',
+            icon: '/images/logo.png'
+          };
+          
+          // إضافة الإشعار إلى قائمة الإشعارات المحلية
+          const notificationItem = document.createElement('div');
+          notificationItem.className = 'notification-item';
+          notificationItem.innerHTML = `
+            <p>${payload.notification?.body || 'إشعار جديد'}</p>
+            <div class="notification-time">الآن</div>
+          `;
+          
+          document.getElementById('notificationsList').prepend(notificationItem);
+          
+          // عرض الإشعار كرسالة منبثقة
+          if (Notification.permission === 'granted') {
+            new Notification(notificationTitle, notificationOptions);
+          } else {
+            showMessage(payload.notification?.body || 'لديك إشعار جديد', 'success');
+          }
+        });
+      } else {
+        console.log('Unable to get permission to notify.');
+      }
+    } catch (error) {
+      console.error('Error initializing Firebase Messaging:', error);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-show-register').addEventListener('click', () => showSection('register'));
     document.getElementById('btn-show-password-popup').addEventListener('click', showPasswordPopup);
     document.getElementById('btn-show-search').addEventListener('click', () => showSection('search'));
+    document.getElementById('btn-show-emergency').addEventListener('click', showEmergencyPopup);
+    document.getElementById('btn-show-notifications').addEventListener('click', showNotifications);
     document.getElementById('btn-add-donor').addEventListener('click', addDonor);
     document.getElementById('btn-search-donor-edit').addEventListener('click', searchDonorToEdit);
     document.getElementById('btn-save-edit').addEventListener('click', saveEdit);
@@ -1473,6 +1842,9 @@
     document.getElementById('btn-cancel-edit').addEventListener('click', cancelEdit);
     document.getElementById('btn-check-password').addEventListener('click', checkPassword);
     document.getElementById('btn-close-password-popup').addEventListener('click', closePasswordPopup);
+    document.getElementById('btn-close-notifications').addEventListener('click', closeNotifications);
+    document.getElementById('btn-send-emergency').addEventListener('click', sendEmergencyRequest);
+    document.getElementById('btn-cancel-emergency').addEventListener('click', closeEmergencyPopup);
     document.getElementById('searchBlood').addEventListener('change', searchDonors);
     document.getElementById('searchQuery').addEventListener('input', searchDonors);
     document.getElementById('btn-save-donation-date').addEventListener('click', saveDonationDate);
@@ -1533,11 +1905,27 @@
     });
     
     // أحداث نافذة طلب إذن الموقع
-document.getElementById('allowLocation').addEventListener('click', () => {
-  document.getElementById('locationPermission').style.display = 'none';
-  // إزالة استدعاء searchNearbyDonors() من هنا
-  showMessage('تم منح إذن الوصول إلى الموقع. يمكنك الآن استخدام زر "البحث عن متبرعين قريبين"', 'success');
-});
+    document.getElementById('allowLocation').addEventListener('click', async () => {
+      document.getElementById('locationPermission').style.display = 'none';
+      
+      try {
+        // الحصول على الموقع الحالي بعد منح الإذن
+        const position = await getCurrentLocation();
+        
+        // عرض رسالة تأكيد للمستخدم
+        const confirmUpdate = confirm('هل ترغب في تحديث موقعك الحالي في قاعدة البيانات إذا كنت متبرعاً مسجلاً؟');
+        
+        if (confirmUpdate) {
+          // استدعاء دالة التحقق والتحديث
+          await checkAndUpdateCurrentDonor();
+        } else {
+          showMessage('تم منح إذن الوصول إلى الموقع. يمكنك الآن استخدام زر "البحث عن متبرعين قريبين"', 'success');
+        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+        showMessage('تم منح إذن الوصول إلى الموقع. يمكنك الآن استخدام زر "البحث عن متبرعين قريبين"', 'success');
+      }
+    });
     
     document.getElementById('denyLocation').addEventListener('click', () => {
       document.getElementById('locationPermission').style.display = 'none';
@@ -1546,6 +1934,9 @@ document.getElementById('allowLocation').addEventListener('click', () => {
     
     // إظهار قسم الترحيب عند تحميل الصفحة
     showSection('welcome');
+    
+    // تهيئة إشعارات Firebase
+    initializeFirebaseMessaging();
     
     // التحقق من تحميل Google Maps API بشكل دوري
     let mapCheckInterval = setInterval(() => {
