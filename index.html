@@ -472,7 +472,7 @@
 </div>
 
 <!-- نافذة الإشعارات -->
-<div id="notificationsPopup" class="popup-message">
+<div id="notificationsPopup">
   <div class="popup-icon">
     <i class="fas fa-bell"></i>
   </div>
@@ -1629,11 +1629,15 @@
   }
 
   function showNotifications() {
-    document.getElementById('notificationsPopup').classList.add('active');
+    const notificationsPopup = document.getElementById('notificationsPopup');
+    notificationsPopup.style.display = 'block';
+    notificationsPopup.classList.add('active');
   }
 
   function closeNotifications() {
-    document.getElementById('notificationsPopup').classList.remove('active');
+    const notificationsPopup = document.getElementById('notificationsPopup');
+    notificationsPopup.style.display = 'none';
+    notificationsPopup.classList.remove('active');
   }
 
   async function checkPassword() { 
@@ -1870,13 +1874,6 @@
           onMessage(messaging, (payload) => {
             console.log('Message received:', payload);
             
-            // عرض الإشعار
-            const notificationTitle = payload.notification?.title || 'إشعار جديد';
-            const notificationOptions = {
-              body: payload.notification?.body || 'لديك إشعار جديد من تطبيق قطرة أمل',
-              icon: '/images/logo.png'
-            };
-            
             // إضافة الإشعار إلى قائمة الإشعارات المحلية
             const notificationItem = document.createElement('div');
             notificationItem.className = 'notification-item';
@@ -1888,11 +1885,7 @@
             document.getElementById('notificationsList').prepend(notificationItem);
             
             // عرض الإشعار كرسالة منبثقة
-            if (Notification.permission === 'granted') {
-              new Notification(notificationTitle, notificationOptions);
-            } else {
-              showMessage(payload.notification?.body || 'لديك إشعار جديد', 'success');
-            }
+            showMessage(payload.notification?.body || 'لديك إشعار جديد', 'success');
           });
         } else {
           console.log('No registration token available. Request permission to generate one.');
