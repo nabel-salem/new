@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -843,7 +843,7 @@
       <option>+A</option><option>-A</option>
       <option>+B</option><option>-B</option>
       <option>+AB</option><option>-AB</option>
-      <option>+O</option><option>-O</option>
+     <option>+O</option><option>-O</option>
     </select>
   </div>
   
@@ -938,7 +938,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
   import { GeoPoint } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
+  import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDfIBS2gB4lkRZ1_ZerLk451EVfafrfWSM",
@@ -950,7 +950,17 @@
   };
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const messaging = getMessaging(app);
+  let messaging = null;
+
+  // تحقق من دعم الإشعارات قبل تهيئة messaging
+  isSupported().then((isSupported) => {
+    if (isSupported) {
+      messaging = getMessaging(app);
+      initializeFirebaseMessaging();
+    } else {
+      console.log('Firebase Messaging is not supported in this browser');
+    }
+  });
 
   let currentDonorDocId = null;
   let currentDisplayedDonors = [];
@@ -2268,9 +2278,6 @@
     
     // إظهار قسم الترحيب عند تحميل الصفحة
     showSection('welcome');
-    
-    // تهيئة إشعارات Firebase
-    initializeFirebaseMessaging();
     
     // التحقق من تحميل Google Maps API بشكل دوري
     let mapCheckInterval = setInterval(() => {
