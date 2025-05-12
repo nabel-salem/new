@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>تطبيق قطرة أمل</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="manifest" href="/manifest.json">
   <style>
     /* التنسيقات العامة */
     .btn-update-date {
@@ -452,6 +453,73 @@
       font-weight: bold;
       display: none;
     }
+
+    /* أنماط أزرار الموقع والإشعارات */
+    .location-notification-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .location-notification-buttons button {
+      width: 100%;
+      margin: 0;
+    }
+    
+    #btn-enable-notifications {
+      background-color: #1976d2;
+      color: white;
+    }
+    
+    #btn-enable-notifications:hover {
+      background-color: #1565c0;
+    }
+    
+    /* نافذة إذن الإشعارات */
+    #notificationPermission {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      z-index: 2000;
+      text-align: center;
+      max-width: 90%;
+      width: 350px;
+    }
+    
+    #notificationPermission h3 {
+      color: #1976d2;
+      margin-top: 0;
+    }
+    
+    .notification-permission-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .notification-permission-buttons button {
+      padding: 8px 15px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+    
+    #allowNotifications {
+      background-color: #1976d2;
+      color: white;
+    }
+    
+    #denyNotifications {
+      background-color: #b30000;
+      color: white;
+    }
   </style>
   <!-- CryptoJS for password hashing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -478,6 +546,17 @@
   <div class="permission-buttons">
     <button id="allowLocation"><i class="fas fa-check"></i> الموافقة</button>
     <button id="denyLocation"><i class="fas fa-times"></i> رفض</button>
+  </div>
+</div>
+
+<!-- نافذة طلب إذن الإشعارات -->
+<div id="notificationPermission">
+  <h3><i class="fas fa-bell"></i> إذن الإشعارات</h3>
+  <p>لتتمكن من تلقي تنبيهات الطوارئ عند الحاجة إلى متبرعين بدمك، نحتاج إلى إذنك لإرسال الإشعارات.</p>
+  <p style="color: #1976d2; font-weight: bold;">بموافقتك، يمكنك المساعدة في إنقاذ حياة المحتاجين للدم!</p>
+  <div class="notification-permission-buttons">
+    <button id="allowNotifications"><i class="fas fa-check"></i> الموافقة</button>
+    <button id="denyNotifications"><i class="fas fa-times"></i> رفض</button>
   </div>
 </div>
 
@@ -544,7 +623,7 @@
       <ul>
         <li><i class="fas fa-user-plus" style="color: #b30000;"></i> تسجيل متبرعين جدد بسهولة</li>
         <li><i class="fas fa-search" style="color: #b30000;"></i> البحث عن متبرعين حسب فصيلة الدم والموقع</li>
-        <li><i class="fas fa-map-marker-alt" style="color: #b30000;"></i> تحديد المتبرعين القريبين من موقعك</li>
+        <li><i class="fas fa-map-marker-alt" style="color: #b30000;"></i> تحديد المتبرعين القريبين منك</li>
         <li><i class="fas fa-phone" style="color: #b30000;"></i> التواصل المباشر مع المتبرعين عبر الهاتف أو الواتساب</li>
         <li><i class="fas fa-edit" style="color: #b30000;"></i> تحديث بيانات المتبرعين بسهولة</li>
         <li><i class="fas fa-bell" style="color: #b30000;"></i> إرسال إشعارات طارئة للمتبرعين عند الحاجة للدم</li>
@@ -632,9 +711,16 @@
     <i class="fas fa-map-marked-alt"></i> تحديد الموقع بالضغط على استخدام الموقع لتفعيل المتبرعين القريبين.
   </label>
   <div id="locationPickerMap" style="height: 200px; margin: 10px 0; border: 2px solid #b30000; border-radius: 8px; display: none;"></div>
-  <button id="btn-get-current-location" type="button" style="background-color: #2e7d32; color: white; border: none; border-radius: 8px; padding: 8px 15px; margin-bottom: 10px; cursor: pointer; width: 100%;">
-    <i class="fas fa-location-arrow"></i> استخدام الموقع لتفعيل المتبرعين القريبين
-  </button>
+  
+  <div class="location-notification-buttons">
+    <button id="btn-get-current-location" type="button">
+      <i class="fas fa-location-arrow"></i> استخدام الموقع
+    </button>
+    <button id="btn-enable-notifications" type="button">
+      <i class="fas fa-bell"></i> تفعيل الإشعارات
+    </button>
+  </div>
+  
   <input type="hidden" id="donorLatitude">
   <input type="hidden" id="donorLongitude">
   
@@ -879,6 +965,7 @@
   let locationMarker;
   let editLocationPickerMap;
   let editLocationMarker;
+  let notificationPermissionAsked = false;
 
   // كلمة المرور المشفرة
   const PASSWORD_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
@@ -1027,6 +1114,21 @@
       });
     } else {
       permissionDiv.style.display = 'block';
+    }
+  }
+
+  // دالة لطلب إذن الإشعارات
+  function requestNotificationPermission() {
+    notificationPermissionAsked = true;
+    const permissionDiv = document.getElementById('notificationPermission');
+    
+    // إظهار نافذة طلب الإذن فقط إذا لم يتم منح الإذن مسبقًا
+    if (Notification.permission === 'default') {
+      permissionDiv.style.display = 'block';
+    } else if (Notification.permission === 'granted') {
+      showMessage('تم تفعيل الإشعارات مسبقاً', 'success');
+    } else {
+      showMessage('لن تتمكن من تلقي تنبيهات الطوارئ بدون إذن الإشعارات', 'error');
     }
   }
 
@@ -1930,64 +2032,111 @@
   // دالة لتهيئة إشعارات Firebase
   async function initializeFirebaseMessaging() {
     try {
-      // تسجيل خدمة العامل (Service Worker)
+      // التحقق من دعم الإشعارات
+      if (!('Notification' in window)) {
+        console.log('This browser does not support notifications');
+        return;
+      }
+
+      // تسجيل خدمة العامل
       const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
       console.log('Service Worker registered:', registration);
+
+      // طلب إذن الإشعارات إذا لم يتم منحه مسبقاً
+      if (Notification.permission === 'default') {
+        // لا نطلب الإذن هنا مباشرة، بل نعرض زراً للمستخدم لطلب الإذن
+        return;
+      } else if (Notification.permission === 'granted') {
+        // إذا كان الإذن ممنوحاً بالفعل، نحصل على رمز الجهاز
+        await getFCMToken(registration);
+      }
       
-      // طلب إذن الإشعارات
+      // معالجة الإشعارات عندما يكون التطبيق في المقدمة
+      onMessage(messaging, (payload) => {
+        console.log('Message received:', payload);
+        
+        // إضافة الإشعار إلى قائمة الإشعارات المحلية
+        const notificationItem = document.createElement('div');
+        notificationItem.className = 'notification-item';
+        notificationItem.innerHTML = `
+          <p><strong>${payload.notification?.title || 'إشعار جديد'}</strong></p>
+          <p>${payload.notification?.body || 'لديك طلب تبرع طارئ'}</p>
+          <div class="notification-time">الآن</div>
+        `;
+        
+        document.getElementById('notificationsList').prepend(notificationItem);
+        
+        // عرض الإشعار كرسالة منبثقة
+        if (payload.notification) {
+          showMessage(payload.notification.body, 'success');
+          
+          // يمكنك أيضاً عرض إشعار متصفح إذا أردت
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(payload.notification.title || 'طلب تبرع طارئ', {
+              body: payload.notification.body,
+              icon: '/icons/icon-192x192.png'
+            });
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing Firebase Messaging:', error);
+    }
+  }
+
+  // دالة للحصول على رمز FCM
+  async function getFCMToken(registration) {
+    try {
+      const token = await getToken(messaging, {
+        vapidKey: 'BL_RSy08zoTm4ShAVn5xlGj6Q9jdykvhuMTBICVs010LybRd9CF-vf9uDPkwu_8LN67j3hqt7X7m87iAlbO3Qs0',
+        serviceWorkerRegistration: registration
+      });
+      
+      if (token) {
+        console.log('FCM Token:', token);
+        localStorage.setItem('fcmToken', token);
+        
+        // تحديث رمز الإشعار للمتبرع إذا كان مسجلاً
+        const phone = prompt('إذا كنت متبرعاً مسجلاً، الرجاء إدخال رقم هاتفك لتحديث رمز الإشعار وإذا لم تكن مسجل إضغط إلغاء:');
+        if (phone) {
+          const phoneSnap = await getDocs(query(collection(db, 'donors'), where('phone', '==', phone)));
+          if (!phoneSnap.empty) {
+            const donorDoc = phoneSnap.docs[0];
+            await updateDoc(doc(db, 'donors', donorDoc.id), {
+              notificationToken: token,
+              updatedAt: new Date().toISOString()
+            });
+            showMessage('تم تحديث بيانات الإشعارات بنجاح');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error getting FCM token:', error);
+    }
+  }
+
+  // دالة لطلب إذن الإشعارات من المستخدم
+  async function requestNotificationPermissionFromUser() {
+    try {
       const permission = await Notification.requestPermission();
       
       if (permission === 'granted') {
-        console.log('Notification permission granted.');
+        showMessage('تم تفعيل الإشعارات بنجاح', 'success');
         
-        // الحصول على رمز الجهاز
-        const token = await getToken(messaging, {
-          vapidKey: 'BL_RSy08zoTm4ShAVn5xlGj6Q9jdykvhuMTBICVs010LybRd9CF-vf9uDPkwu_8LN67j3hqt7X7m87iAlbO3Qs0',
-          serviceWorkerRegistration: registration
-        });
+        // تسجيل خدمة العامل
+        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
         
-        if (token) {
-          console.log('FCM Token:', token);
-          localStorage.setItem('fcmToken', token);
-          
-          // إذا كان المستخدم متبرعاً مسجلاً، قم بتحديث سجله في قاعدة البيانات
-          const phone = prompt('إذا كنت متبرعاً مسجلاً، الرجاء إدخال رقم هاتفك لتحديث رمز الإشعار:');
-          if (phone) {
-            const phoneSnap = await getDocs(query(collection(db, 'donors'), where('phone', '==', phone)));
-            if (!phoneSnap.empty) {
-              const donorDoc = phoneSnap.docs[0];
-              await updateDoc(doc(db, 'donors', donorDoc.id), {
-                notificationToken: token,
-                updatedAt: new Date().toISOString()
-              });
-              showMessage('تم تحديث بيانات الإشعارات بنجاح');
-            }
-          }
-        }
+        // الحصول على رمز FCM
+        await getFCMToken(registration);
         
-        // استقبال الإشعارات عندما يكون التطبيق مفتوحاً
-        onMessage(messaging, (payload) => {
-          console.log('Message received:', payload);
-          
-          // إضافة الإشعار إلى قائمة الإشعارات المحلية
-          const notificationItem = document.createElement('div');
-          notificationItem.className = 'notification-item';
-          notificationItem.innerHTML = `
-            <p><strong>${payload.notification?.title || 'إشعار جديد'}</strong></p>
-            <p>${payload.notification?.body || 'لديك طلب تبرع طارئ'}</p>
-            <div class="notification-time">الآن</div>
-          `;
-          
-          document.getElementById('notificationsList').prepend(notificationItem);
-          
-          // عرض الإشعار كرسالة منبثقة
-          showMessage(payload.notification?.body || 'لديك إشعار جديد', 'success');
-        });
+        // إخفاء نافذة طلب الإذن
+        document.getElementById('notificationPermission').style.display = 'none';
       } else {
-        console.log('Unable to get permission to notify.');
+        showMessage('لن تتمكن من تلقي تنبيهات الطوارئ بدون إذن الإشعارات', 'error');
       }
     } catch (error) {
-      console.error('Error initializing Firebase Messaging:', error);
+      console.error('Error requesting notification permission:', error);
+      showMessage('حدث خطأ أثناء طلب إذن الإشعارات', 'error');
     }
   }
 
@@ -2099,6 +2248,22 @@
     document.getElementById('denyLocation').addEventListener('click', () => {
       document.getElementById('locationPermission').style.display = 'none';
       showMessage('لن تتمكن من رؤية المتبرعين القريبين منك بدون إذن الموقع', 'error');
+    });
+    
+    // أحداث نافذة طلب إذن الإشعارات
+    document.getElementById('allowNotifications').addEventListener('click', async () => {
+      document.getElementById('notificationPermission').style.display = 'none';
+      await requestNotificationPermissionFromUser();
+    });
+    
+    document.getElementById('denyNotifications').addEventListener('click', () => {
+      document.getElementById('notificationPermission').style.display = 'none';
+      showMessage('لن تتمكن من تلقي تنبيهات الطوارئ بدون إذن الإشعارات', 'error');
+    });
+    
+    // حدث زر تفعيل الإشعارات
+    document.getElementById('btn-enable-notifications').addEventListener('click', () => {
+      requestNotificationPermission();
     });
     
     // إظهار قسم الترحيب عند تحميل الصفحة
